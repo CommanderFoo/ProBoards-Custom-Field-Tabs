@@ -4,7 +4,7 @@ class Custom_Field_Tabs {
 		this.PLUGIN_ID = "pd_custom_field_tabs";
 		this.route = pb.data("route").name;
 		this.existing_ui_event_added = false;
-		this.settings = {};
+		this.settings = Object.create(null);
 
 		this.setup();
 
@@ -22,7 +22,16 @@ class Custom_Field_Tabs {
 					return;
 				}
 
-				let $html = $("<div></div>");
+				let $html;
+				let custom = false;
+
+				if(elem.custom_layout.length > 0){
+					$html = new Custom_Field_Tabs_Parser(elem.custom_layout);
+					custom = true;
+				} else {
+					$html = $("<div></div>");
+				}
+
 				let table_fragment = document.createDocumentFragment();
 
 				fields.forEach(field => {
@@ -36,7 +45,8 @@ class Custom_Field_Tabs {
 						$cloned_field.attr("data-custom-field-clone", simple_field_name);
 
 						$the_field_node.hide();
-						$html.append($cloned_field.show());
+
+						$html.append($cloned_field.show(), ((custom)? simple_field_name : null));
 					} else if(this.profile_home()){
 						let $tr_node = $("td#center-column").find("tr[class^=custom-field-" + simple_field_name + "]");
 
@@ -54,7 +64,7 @@ class Custom_Field_Tabs {
 
 					render: ($content, data_page, viewing) => {
 						if(!viewing){
-							$content.append($html);
+							$content.append((custom)? $html.content() : $html);
 
 							let $button = $("<button>Save Settings</button>");
 
@@ -100,12 +110,14 @@ class Custom_Field_Tabs {
 		let plugin = pb.plugin.get(this.PLUGIN_ID);
 
 		if(plugin && plugin.settings){
-			this.settings = plugin.settings;
+			this.settings.tabs = plugin.settings.tabs;
+
+			this.settings.profile_view_tabs = (plugin.settings.profile_view_tabs == 1)? true : false;
+			this.settings.profile_edit_tabs = (plugin.settings.profile_edit_tabs == 1)? true : false;
 		}
 	}
 
 	static setup_observer(){
-
 		let $the_form = $("form.form_user_edit_personal");
 
 		let observer = new MutationObserver((mutations) => {
@@ -292,10 +304,18 @@ class Custom_Field_Tabs {
 	}
 
 	static edit_profile(){
+		if(!this.settings.profile_edit_tabs){
+			return false;
+		}
+
 		return (this.profile_edit_admin() || this.profile_edit_avatar() || this.profile_edit_badges() || this.profile_edit_notifications() || this.profile_edit_personal() || this.profile_edit_privacy() || this.profile_edit_settings() || this.profile_edit_social());
 	}
 
 	static view_profile(){
+		if(!this.settings.profile_view_tabs){
+			return false;
+		}
+
 		return (this.profile_activity() || this.profile_following() || this.profile_friends() || this.profile_gift() || this.profile_groups() || this.profile_home() || this.profile_notifications());
 	}
 

@@ -4,6 +4,40 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var Custom_Field_Tabs_Parser = function () {
+	function Custom_Field_Tabs_Parser() {
+		var template = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+
+		_classCallCheck(this, Custom_Field_Tabs_Parser);
+
+		this.template = template;
+	}
+
+	_createClass(Custom_Field_Tabs_Parser, [{
+		key: "append",
+		value: function append() {
+			var $node = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+			var simple_field_name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
+
+			if ($node && simple_field_name) {
+				var html = $("<div></div>").append($node).html();
+				var re = new RegExp("\\$\\[" + simple_field_name + "\\]", "gi");
+
+				if (this.template.match(re)) {
+					this.template = this.template.replace(re, html);
+				}
+			}
+		}
+	}, {
+		key: "content",
+		value: function content() {
+			return $("<div></div>").html(this.template);
+		}
+	}]);
+
+	return Custom_Field_Tabs_Parser;
+}();
+
 var Custom_Field_Tabs = function () {
 	function Custom_Field_Tabs() {
 		_classCallCheck(this, Custom_Field_Tabs);
@@ -15,7 +49,7 @@ var Custom_Field_Tabs = function () {
 			this.PLUGIN_ID = "pd_custom_field_tabs";
 			this.route = pb.data("route").name;
 			this.existing_ui_event_added = false;
-			this.settings = {};
+			this.settings = Object.create(null);
 
 			this.setup();
 
@@ -36,7 +70,16 @@ var Custom_Field_Tabs = function () {
 						return;
 					}
 
-					var $html = $("<div></div>");
+					var $html = void 0;
+					var custom = false;
+
+					if (elem.custom_layout.length > 0) {
+						$html = new Custom_Field_Tabs_Parser(elem.custom_layout);
+						custom = true;
+					} else {
+						$html = $("<div></div>");
+					}
+
 					var table_fragment = document.createDocumentFragment();
 
 					fields.forEach(function (field) {
@@ -50,7 +93,8 @@ var Custom_Field_Tabs = function () {
 							$cloned_field.attr("data-custom-field-clone", simple_field_name);
 
 							$the_field_node.hide();
-							$html.append($cloned_field.show());
+
+							$html.append($cloned_field.show(), custom ? simple_field_name : null);
 						} else if (_this.profile_home()) {
 							var $tr_node = $("td#center-column").find("tr[class^=custom-field-" + simple_field_name + "]");
 
@@ -67,7 +111,7 @@ var Custom_Field_Tabs = function () {
 
 						render: function render($content, data_page, viewing) {
 							if (!viewing) {
-								$content.append($html);
+								$content.append(custom ? $html.content() : $html);
 
 								var $button = $("<button>Save Settings</button>");
 
@@ -112,13 +156,15 @@ var Custom_Field_Tabs = function () {
 			var plugin = pb.plugin.get(this.PLUGIN_ID);
 
 			if (plugin && plugin.settings) {
-				this.settings = plugin.settings;
+				this.settings.tabs = plugin.settings.tabs;
+
+				this.settings.profile_view_tabs = plugin.settings.profile_view_tabs == 1 ? true : false;
+				this.settings.profile_edit_tabs = plugin.settings.profile_edit_tabs == 1 ? true : false;
 			}
 		}
 	}, {
 		key: "setup_observer",
 		value: function setup_observer() {
-
 			var $the_form = $("form.form_user_edit_personal");
 
 			var observer = new MutationObserver(function (mutations) {
@@ -337,11 +383,19 @@ var Custom_Field_Tabs = function () {
 	}, {
 		key: "edit_profile",
 		value: function edit_profile() {
+			if (!this.settings.profile_edit_tabs) {
+				return false;
+			}
+
 			return this.profile_edit_admin() || this.profile_edit_avatar() || this.profile_edit_badges() || this.profile_edit_notifications() || this.profile_edit_personal() || this.profile_edit_privacy() || this.profile_edit_settings() || this.profile_edit_social();
 		}
 	}, {
 		key: "view_profile",
 		value: function view_profile() {
+			if (!this.settings.profile_view_tabs) {
+				return false;
+			}
+
 			return this.profile_activity() || this.profile_following() || this.profile_friends() || this.profile_gift() || this.profile_groups() || this.profile_home() || this.profile_notifications();
 		}
 	}, {
