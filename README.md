@@ -14,3 +14,7 @@ Download from the releases page.
 ![Screen Shot](https://i.imgur.com/crIi0Pr.png)
 
 ![Screen Shot](https://i.imgur.com/jLx0Xrs.png)
+
+Custom template:
+
+![Screen Shot](https://i.imgur.com/mtHY9XL.png)
