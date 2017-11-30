@@ -90,7 +90,7 @@ class Custom_Field_Tabs {
 						if(!viewing){
 							$content.append((custom)? $html.content() : $html);
 
-							let $button = $("<button>Save Settings</button>");
+							let $button = $("<button>" + (elem.submit_button_text || "Save Settings") + "</button>");
 
 							$button.on("click", this.save_fields.bind(this, fields));
 
