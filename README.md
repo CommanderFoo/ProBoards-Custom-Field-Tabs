@@ -1,4 +1,4 @@
-Custom Field Tabs 1.1.0
+Custom Field Tabs 1.1.1
 =======================
 
 Allows you to move custom fields to tabs on the view and edit profile areas.
